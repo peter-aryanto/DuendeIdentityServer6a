@@ -1,6 +1,14 @@
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddAuthentication("Bearer")
+  .AddJwtBearer("Bearer", options => {
+    options.Audience = "weatherapi";
+    options.Authority = "https://localhost:5001";
+
+    // Ignore self-signed SSL
+    // options.BackchannelHttpHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = null };
+  });
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -18,6 +26,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
