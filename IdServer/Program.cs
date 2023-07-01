@@ -1,6 +1,21 @@
+/*
+  Quickstart: https://github.com/DuendeSoftware/IdentityServer.Quickstart.UI
+  curl -L https://raw.githubusercontent.com/DuendeSoftware/IdentityServer.Quickstart.UI/main/getmain.sh | bash
+*/
 using Duende.IdentityServer.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => {
+  policy
+    .AllowAnyOrigin()
+    // .WithOrigins("http://localhost:3000")
+    .AllowAnyHeader()
+    .AllowAnyMethod();
+}));
+
+// builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
 builder.Services.AddIdentityServer()
   .AddInMemoryApiScopes(
@@ -26,14 +41,36 @@ builder.Services.AddIdentityServer()
       AllowedGrantTypes = GrantTypes.ClientCredentials,
       AllowedScopes = { "weatherapi.read" },
     },
-  });
+    new Client
+    {
+      ClientId = "weather-client",
+      RequireClientSecret = false,
+      AllowedGrantTypes = GrantTypes.Code,
+      AllowedScopes = { "openid", "profile", "weatherapi.read" },
+
+      RedirectUris = { "http://localhost:3000/signin-oidc" },
+      PostLogoutRedirectUris = { "Http://localhost:3000" },
+    }
+  })
+  .AddInMemoryIdentityResources(new List<IdentityResource>{
+    new IdentityResources.OpenId(),
+    new IdentityResources.Profile(),
+  })
+  .AddTestUsers(IdentityServerHost.TestUsers.Users);
 
 
 
 var app = builder.Build();
 
+app.UseCors();
+
 app.UseIdentityServer();
 
-app.MapGet("/", () => "Hello World!");
+// app.MapGet("/", () => "Hello World!");
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+// app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+app.MapRazorPages().RequireAuthorization();
 
 app.Run();

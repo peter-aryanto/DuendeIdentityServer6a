@@ -25,6 +25,8 @@ function App() {
 */
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { React, useState, useEffect } from "react";
+import { UserManager } from "oidc-client";
 
 function App() {
   return (
@@ -38,11 +40,52 @@ function App() {
 }
 
 function HomePage() {
-  return <>Home</>
+  const [state, setState] = useState(null);
+
+  const mgr = new UserManager({
+    authority: "https://localhost:5001",
+    client_id: "weather-client",
+    response_type: "code",
+    scope: "openid profile",
+    redirect_uri: "http://localhost:3000/signin-oidc",
+    post_logout_redirect_uri: "http://localhost:3000"
+  });
+
+  useEffect(() => {
+    mgr.getUser().then(user => {
+      if (user) {
+        console.log(user);
+        console.log(user.profile);
+        setState({ user });
+      }
+    });
+  }, []);
+
+  return (
+    <div>
+      { state ?
+        <>
+          <h3>Welcome {state?.user?.profile?.name}</h3>
+          <button onClick={() => mgr.signoutRedirect()}>Logout</button>
+        </> :
+        <>
+          <h3>React Weather App</h3>
+          <button onClick={() => mgr.signinRedirect()}>Login</button>
+        </>
+      }
+    </div>
+  );
 }
 
 function Callback() {
-  return <>Callback</>
+  useEffect(() => {
+    const mgr = new UserManager({ response_mode: "query" });
+    mgr.signinRedirectCallback()
+      .then(() => window.location.href = '/')
+      .catch((/*error*/) => {});
+  }, []);
+
+  return <p>Loading...</p>;
 }
 
 export default App;
