@@ -46,7 +46,7 @@ function HomePage() {
     authority: "https://localhost:5001",
     client_id: "weather-client",
     response_type: "code",
-    scope: "openid profile",
+    scope: "openid profile weatherapi.read",
     redirect_uri: "http://localhost:3000/signin-oidc",
     post_logout_redirect_uri: "http://localhost:3000"
   });
@@ -54,9 +54,16 @@ function HomePage() {
   useEffect(() => {
     mgr.getUser().then(user => {
       if (user) {
-        console.log(user);
-        console.log(user.profile);
-        setState({ user });
+        // console.log(user);
+        // console.log(user.profile);
+        // setState({ user });
+        fetch('https://localhost:5003/WeatherForecast', {
+          headers: {
+            Authorization: `Bearer ${user.access_token}`,
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => setState({ user, data }));
       }
     });
   }, []);
@@ -66,6 +73,7 @@ function HomePage() {
       { state ?
         <>
           <h3>Welcome {state?.user?.profile?.name}</h3>
+          <pre>{JSON.stringify(state?.data, null, 2)}</pre>
           <button onClick={() => mgr.signoutRedirect()}>Logout</button>
         </> :
         <>
