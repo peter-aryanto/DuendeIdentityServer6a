@@ -1,4 +1,6 @@
 /*
+  https://www.youtube.com/watch?v=Tv4jU1rLVOo (Federated Identity: An intro to OAuth2, Open Id Connect & Duende IdentityServer 5 | Anthony Nguyen)
+
   Quickstart: https://github.com/DuendeSoftware/IdentityServer.Quickstart.UI
   curl -L https://raw.githubusercontent.com/DuendeSoftware/IdentityServer.Quickstart.UI/main/getmain.sh | bash
 */
@@ -50,6 +52,8 @@ builder.Services.AddIdentityServer()
 
       RedirectUris = { "http://localhost:3000/signin-oidc" },
       PostLogoutRedirectUris = { "Http://localhost:3000" },
+
+      RequireConsent = true,
     }
   })
   .AddInMemoryIdentityResources(new List<IdentityResource>{
